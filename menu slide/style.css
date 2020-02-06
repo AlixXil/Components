@@ -1,0 +1,47 @@
+.menu-btn {
+  height: 30px;
+  width: 30px;
+  background: #aaa;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 99;
+}
+.wrapper {
+  // position: relative;
+  display: flex;
+  max-width: 700px;
+  margin: 0 auto;
+  perspective: 1000px;
+  overflow: hidden;
+  padding-bottom: 20px;
+}
+.menu {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 20px;
+  width: 150px;
+  background: #eee;
+  padding: 20px;
+  transform-origin: left;
+  transform: translateX(-100%);
+  transition: 0.6s;
+  z-index: 2;
+}
+.content {
+  background: #ddd;
+  padding: 20px;
+  transform-origin: right;
+  transition: 0.5s;
+}
+.menu.show {
+  transform: translateX(10%) rotateY(10deg);
+  transition: .5s;
+  box-shadow: 5px 5px 15px 0px #888;
+}
+.content.show {
+  transform: translateX(10%) rotateY(-30deg);
+  transition: .5s;
+  box-shadow: 5px 5px 15px 0px #888;
+}
