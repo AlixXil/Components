@@ -9,8 +9,5 @@ menuBtn.addEventListener('click', () => {
 })
 
 document.addEventListener("scroll", () => {
-  // console.dir(e)
-  // console.log('scroll', window.scrollY, 'offset', window.pageYOffset)
   menu.style.top = (window.scrollY + 10) + 'px'
 })
-// console.dir(window)
