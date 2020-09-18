@@ -1,22 +1,24 @@
 class Slider {
 
-  constructor(sliderID) {
-    this.currentSlide = 0
-    this.slider = null
-    this.slides = null
-    this.track = null
-    this.dots = null
+  constructor(sliderID, options = { showSlides: 1, slideCount: 1 }) {
+    this.showSlides = options.showSlides ? options.showSlides : 1; // показывать слайдов
+    this.slideCount = options.slideCount ? options.slideCount : 1; // прокрутка слайдов
+
+    this.currentSlide = 0 // текущий слайд
+    this.slider = null // контейнер
+    this.slides = null // элементы с классом slide
+    this.track = null //дорожка со сладами
+    this.dots = null // точки
 
     this.slider = document.querySelector("#" + sliderID)
     this.slides = this.slider.querySelectorAll(".slide")
-      // создаем полосу для слайдов
+    // создаем полосу для слайдов
     this.track = document.createElement('div')
     this.track.classList.add('slider-track')
 
     // изменение размеров
-    window.addEventListener('resize', function() {
-      this.resizeSlider(this.slider, this.track, this.slides)
-    })
+    this.windowResizeHandler = this.windowResizeHandler.bind(this)
+    window.addEventListener('resize', this.windowResizeHandler)
     this.resizeSlider(this.slider, this.track, this.slides)
 
     // переносим слайды на полосу
@@ -35,9 +37,13 @@ class Slider {
 
     this.slides.forEach((s) => {
       s.addEventListener('click', (e) => {
-        this.setCurrentSlide(this.currentSlide + 1)
+        this.setCurrentSlide(this.currentSlide + this.slideCount)
       })
     })
+  }
+
+  windowResizeHandler() {
+    this.resizeSlider(this.slider, this.track, this.slides)
   }
 
   addButtons() {
@@ -75,20 +81,36 @@ class Slider {
 
   // клик на точке
   dotClick(e) {
-      this.setCurrentSlide(Number(e.target.dataset.slide))
-    }
-    // клик на кнопке
+    this.setCurrentSlide(Number(e.target.dataset.slide))
+  }
+  // клик на кнопке
   btnPrevClick(e) {
-    this.setCurrentSlide(this.currentSlide - 1, this.slides, this.track)
+    this.setCurrentSlide(this.currentSlide - this.slideCount)
   }
   btnNextClick(e, step) {
-    this.setCurrentSlide(this.currentSlide + 1, this.slides, this.track)
+    this.setCurrentSlide(this.currentSlide + this.slideCount)
   }
 
   setCurrentSlide(index) {
-    if (index >= this.slides.length) { this.currentSlide = 0 } else if (index < 0) { this.currentSlide = this.slides.length - 1 } else { this.currentSlide = index }
+    let isEnd = false; //флаг выхода за крайний слайд
+    // let step = index - this.currentSlide; // шаг пролистывания, + следующий, - предыдущий 
 
-    //передвинуть дорожку
+    if (this.slideCount >= this.showSlides) {
+      if (
+        index >= this.slides.length &&
+        index - this.slideCount + this.showSlides >= this.slides.length) this.currentSlide = 0;
+      else if (
+        index + this.slideCount <= this.showSlides &&
+        this.currentSlide != 0) this.currentSlide = 0;
+      else if (index + this.slideCount > this.slides.length || index < 0) this.currentSlide = this.slides.length - this.showSlides;
+      else this.currentSlide = index;
+    } else {
+      if (index > this.slides.length - this.showSlides && this.currentSlide == this.slides.length - this.showSlides) this.currentSlide = 0;
+      else if (index + this.slideCount <= this.slideCount && this.currentSlide != 0) this.currentSlide = 0;
+      else if (index > this.slides.length - this.showSlides || index < 0) this.currentSlide = this.slides.length - this.showSlides;
+      else this.currentSlide = index;
+    }
+
     let left = this.slides[this.currentSlide].offsetWidth * this.currentSlide
     this.track.style.left = -left + 'px'
 
@@ -102,19 +124,19 @@ class Slider {
   }
 
   resizeSlider(slider, track, slides) {
-    let sliderWidth = slider.offsetWidth
-      // растягиваем слайды на все ширину
+    let sliderWidth = slider.offsetWidth / this.showSlides;
+    // растягиваем слайды на все ширину
     slides.forEach((s) => {
-        s.style.width = sliderWidth + 'px'
-      })
-      // устанавливаем высоту дорожки
+      s.style.width = sliderWidth + 'px'
+    })
+    // устанавливаем высоту дорожки
     slider.style.height = track.style.height = slides[0].offsetHeight + 'px'
-      // track.style.height = slides[0].offsetHeight + 'px'
-      // устанавливаем ширину дорожки 
-      // исходя из предположения что все слайды одной ширины
+    // track.style.height = slides[0].offsetHeight + 'px'
+    // устанавливаем ширину дорожки 
+    // исходя из предположения что все слайды одной ширины
     track.style.width = sliderWidth * slides.length + 'px'
 
     // передвигаем
-    this.setCurrentSlide(this.currentSlide, slides, track)
+    this.setCurrentSlide(this.currentSlide)
   }
 }
