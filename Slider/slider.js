@@ -1,14 +1,23 @@
 class Slider {
 
-  constructor(sliderID, options = { showSlides: 1, slideCount: 1 }) {
+  constructor(sliderID, options = { showSlides: 1, slideCount: 1, showDots: true }) {
     this.showSlides = options.showSlides ? options.showSlides : 1; // показывать слайдов
     this.slideCount = options.slideCount ? options.slideCount : 1; // прокрутка слайдов
 
-    this.currentSlide = 0 // текущий слайд
-    this.slider = null // контейнер
-    this.slides = null // элементы с классом slide
-    this.track = null //дорожка со сладами
-    this.dots = null // точки
+    //отображение точек
+    if (options.showDots != null) this.showDots = options.showDots;
+    else this.showDots = true;
+
+    this.currentSlide = 0; // текущий слайд
+    this.slider = null; // контейнер
+    this.slides = null; // элементы с классом slide
+    this.track = null; //дорожка со сладами
+    this.dots = null; // точки
+    this.left = 0; // отступ слева
+
+    //для тача
+    this.touch = false;
+    this.touchStartPosition = 0;
 
     this.slider = document.querySelector("#" + sliderID)
     this.slides = this.slider.querySelectorAll(".slide")
@@ -33,13 +42,22 @@ class Slider {
     this.addButtons()
 
     // добавляем точки
-    this.addDots();
+    if (this.showDots) this.addDots();
 
-    this.slides.forEach((s) => {
-      s.addEventListener('click', (e) => {
-        this.setCurrentSlide(this.currentSlide + this.slideCount)
-      })
-    })
+    // клик по слайду
+    // this.slides.forEach((s) => {
+    //   s.addEventListener('click', (e) => {
+    //     this.setCurrentSlide(this.currentSlide + this.slideCount)
+    //   })
+    // })
+
+    this.touchStart = this.touchStart.bind(this);
+    this.touchEnd = this.touchEnd.bind(this);
+    this.touchMove = this.touchMove.bind(this);
+
+    this.slider.addEventListener('touchstart', this.touchStart);
+    this.slider.addEventListener('touchend', this.touchEnd);
+    this.slider.addEventListener('touchmove', this.touchMove);
   }
 
   windowResizeHandler() {
@@ -87,7 +105,7 @@ class Slider {
   btnPrevClick(e) {
     this.setCurrentSlide(this.currentSlide - this.slideCount)
   }
-  btnNextClick(e, step) {
+  btnNextClick(e) {
     this.setCurrentSlide(this.currentSlide + this.slideCount)
   }
 
@@ -111,8 +129,8 @@ class Slider {
       else this.currentSlide = index;
     }
 
-    let left = this.slides[this.currentSlide].offsetWidth * this.currentSlide
-    this.track.style.left = -left + 'px'
+    this.left = this.slides[this.currentSlide].offsetWidth * this.currentSlide
+    this.track.style.left = -this.left + 'px'
 
     //обновить точки
     if (this.dots) {
@@ -138,5 +156,29 @@ class Slider {
 
     // передвигаем
     this.setCurrentSlide(this.currentSlide)
+  }
+
+  // обработка тач событий
+  touchStart(e) {
+    this.touch = true;
+    this.touchStartPosition = e.touches[0].clientX;
+  }
+  touchEnd(e) {
+    this.touch = false;
+    this.left = this.left + Math.ceil(this.touchStartPosition - e.changedTouches[0].clientX);
+
+    //обновление текущего слайда
+    let slide = Math.floor(this.left / this.slides[0].offsetWidth);
+    if (this.left % this.slides[0].offsetWidth > this.slides[0].offsetWidth / 2) {
+      slide += 1;
+    }
+
+    this.setCurrentSlide(slide);
+  }
+  touchMove(e) {
+    if (this.touch) {
+      let delta = Math.ceil(this.touchStartPosition - e.touches[0].clientX);
+      this.track.style.left = -this.left - delta + 'px';
+    }
   }
 }
